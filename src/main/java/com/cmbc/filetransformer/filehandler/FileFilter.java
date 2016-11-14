@@ -22,12 +22,14 @@ public class FileFilter implements FilenameFilter{
     private Pattern pattern;
     private boolean isIdleMode;
     private int idleMin;
+    private int idleMax;
 
-    public FileFilter(String regex, boolean idleMode, int idleTime) {
+    public FileFilter(String regex, boolean idleMode, int idleMinTime, int idleMaxTime) {
         // TODO Auto-generated constructor stub
         pattern= Pattern.compile(regex);
         isIdleMode = idleMode;
-        idleMin = idleTime;
+        idleMin = idleMinTime;
+        idleMax = idleMaxTime;
     }
 
     public boolean accept(File dir, String name) {
@@ -76,7 +78,7 @@ public class FileFilter implements FilenameFilter{
         Date now = new Date();
         long diff = now.getTime() - lastModifyTimeStamp;
         long diffMin = diff/(1000 * 60);
-        if (diffMin >= idleMin){
+        if (diffMin >= idleMin && diffMin <= idleMax){
             return true;
         }else{
             return false;
