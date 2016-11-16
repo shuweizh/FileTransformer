@@ -21,32 +21,36 @@ public class FileFilter implements FilenameFilter{
 
     private Pattern pattern;
     private boolean isIdleMode;
-    private int idleMin;
-    private int idleMax;
+    private int idleMinTime;
+    private int minDaysBefore;
+    private int maxDayBefore;
 
-    public FileFilter(String regex, boolean idleMode, int idleMinTime, int idleMaxTime) {
+    public FileFilter(String regex, boolean idleMode, int idleMinTime, int daysBeforeMin, int daysBeforeMax) {
         // TODO Auto-generated constructor stub
         pattern= Pattern.compile(regex);
         isIdleMode = idleMode;
-        idleMin = idleMinTime;
-        idleMax = idleMaxTime;
+        idleMinTime = idleMinTime;
+        minDaysBefore = daysBeforeMin;
+        maxDayBefore = daysBeforeMax;
     }
 
     public boolean accept(File dir, String name) {
         // TODO Auto-generated method stub
-        boolean result=false;
+        boolean result = false;
         Path tmpPath = Paths.get(dir.getAbsolutePath(), name);
         File tmpFile = tmpPath.toFile();
         boolean isFile = tmpFile.exists() && tmpFile.isFile();
         boolean isMatch = pattern.matcher(name).matches();
 
         result = isFile && isMatch;
-        if(isIdleMode) {
-            boolean isIdleEnough = isIdleEnough(tmpFile);
-            result = result && isIdleEnough;
-        }else {
-            boolean isOpened = isOpened(tmpFile);
-            result = result && isOpened;
+        if(result) {
+            if (isIdleMode) {
+                boolean isIdleEnough = isIdleEnough(tmpFile);
+                result = result && isIdleEnough;
+            } else {
+                boolean isOpened = isOpened(tmpFile);
+                result = result && !isOpened;
+            }
         }
         return result;
     }
@@ -78,7 +82,8 @@ public class FileFilter implements FilenameFilter{
         Date now = new Date();
         long diff = now.getTime() - lastModifyTimeStamp;
         long diffMin = diff/(1000 * 60);
-        if (diffMin >= idleMin && diffMin <= idleMax){
+        long diffDays = diffMin / (60 * 24);
+        if (diffMin >= idleMinTime && diffDays > minDaysBefore && diffDays < maxDayBefore){
             return true;
         }else{
             return false;
